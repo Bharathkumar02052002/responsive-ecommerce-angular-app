@@ -1,0 +1,90 @@
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons';
+
+:root {
+  --app-bg: #f7f8fb;
+  --app-surface: #ffffff;
+  --app-surface-soft: #eef3f8;
+  --app-text: #17202a;
+  --app-muted: #667085;
+  --app-border: #dde5ee;
+  --app-primary: #0f766e;
+  --app-primary-strong: #0b5f59;
+  --app-accent: #f59e0b;
+  --app-danger: #dc3545;
+  --app-shadow: 0 16px 40px rgba(18, 38, 63, 0.1);
+}
+
+[data-bs-theme='dark'] {
+  --app-bg: #101418;
+  --app-surface: #171d24;
+  --app-surface-soft: #202832;
+  --app-text: #edf2f7;
+  --app-muted: #aab4c0;
+  --app-border: #2d3742;
+  --app-primary: #2dd4bf;
+  --app-primary-strong: #5eead4;
+  --app-shadow: 0 16px 40px rgba(0, 0, 0, 0.32);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+.app-main {
+  min-height: calc(100vh - 156px);
+}
+
+.section-pad {
+  padding: 2rem 0;
+}
+
+.surface {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow);
+}
+
+.btn-brand {
+  --bs-btn-bg: var(--app-primary);
+  --bs-btn-border-color: var(--app-primary);
+  --bs-btn-hover-bg: var(--app-primary-strong);
+  --bs-btn-hover-border-color: var(--app-primary-strong);
+  --bs-btn-color: #fff;
+}
+
+.text-muted-app {
+  color: var(--app-muted);
+}
+
+.product-image {
+  object-fit: contain;
+  background: #fff;
+}
+
+.hover-lift {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.hover-lift:hover {
+  border-color: rgba(15, 118, 110, 0.35);
+  box-shadow: 0 18px 45px rgba(18, 38, 63, 0.14);
+  transform: translateY(-3px);
+}
+
+@media (max-width: 575.98px) {
+  .section-pad {
+    padding: 1.25rem 0;
+  }
+}
