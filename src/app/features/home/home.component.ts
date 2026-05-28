@@ -19,11 +19,10 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
       <div class="container">
         <div class="row align-items-center g-4">
           <div class="col-lg-7">
-            <p class="text-uppercase fw-semibold small mb-2">Angular 16 storefront</p>
+            <p class="text-uppercase fw-semibold small mb-2">New season essentials</p>
             <h1 class="display-4 fw-bold">ShopSphere</h1>
             <p class="lead mb-4">
-              A responsive ecommerce product listing experience with signals, lazy routes, FakeStore API, and persistent
-              cart and wishlist state.
+              Browse everyday picks, save favorites, and keep your cart ready across visits.
             </p>
             <div class="d-flex flex-column flex-sm-row gap-2">
               <a class="btn btn-brand btn-lg" routerLink="/products">Browse products</a>
@@ -32,7 +31,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
           </div>
           <div class="col-lg-5">
             <div class="hero-panel rounded-3 p-4">
-              <p class="small text-uppercase fw-semibold mb-2">Portfolio highlights</p>
+              <p class="small text-uppercase fw-semibold mb-2">Store snapshot</p>
               <div class="row g-3">
                 <div class="col-6" *ngFor="let stat of stats">
                   <div class="stat-tile rounded-3 p-3">
@@ -100,9 +99,9 @@ export class HomeComponent implements OnInit {
   readonly loading = signal(true);
   readonly stats = [
     { value: '20+', label: 'API products' },
-    { value: '7', label: 'Lazy pages' },
-    { value: '2', label: 'Persistent stores' },
-    { value: '100%', label: 'Responsive UI' }
+    { value: '4', label: 'Categories' },
+    { value: '2', label: 'Saved lists' },
+    { value: '24/7', label: 'Browse anytime' }
   ];
 
   constructor(

@@ -28,8 +28,8 @@ import { RouterLink } from '@angular/router';
   ]
 })
 export class EmptyStateComponent {
-  @Input() title = 'Nothing here yet';
-  @Input() message = 'Explore products and come back when you are ready.';
+  @Input() title = 'No items found';
+  @Input() message = 'Try adjusting your search or browse the catalog.';
   @Input() icon = 'bi-bag';
   @Input() actionLabel = 'Browse products';
   @Input() actionLink = '/products';

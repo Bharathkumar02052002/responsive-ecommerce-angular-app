@@ -37,7 +37,7 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
           <div>
             <p class="text-uppercase fw-semibold text-muted-app small mb-2">Catalog</p>
             <h1 class="display-6 fw-bold mb-2">Find products that fit your day</h1>
-            <p class="text-muted-app mb-0">Search, filter, sort, and save products from the FakeStore catalog.</p>
+            <p class="text-muted-app mb-0">Search the catalog, narrow it by category, and save what you like.</p>
           </div>
           <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary d-lg-none" type="button" (click)="mobileFiltersOpen.set(true)">

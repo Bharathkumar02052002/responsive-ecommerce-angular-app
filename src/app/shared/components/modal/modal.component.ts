@@ -54,6 +54,6 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 })
 export class ModalComponent {
   @Input() open = false;
-  @Input() title = 'Dialog';
+  @Input() title = 'Details';
   @Output() close = new EventEmitter<void>();
 }

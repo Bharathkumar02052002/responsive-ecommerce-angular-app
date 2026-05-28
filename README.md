@@ -1,19 +1,18 @@
-# ShopSphere - Responsive Ecommerce Angular App
+# ShopSphere
 
-ShopSphere is a recruiter-friendly Angular 16 ecommerce product listing website built with standalone components, lazy routing, Bootstrap 5, Angular Signals, RxJS, and the FakeStore API. It demonstrates clean frontend architecture, production-minded state handling, responsive UI, accessible controls, and persistent cart/wishlist workflows.
+ShopSphere is a responsive Angular 16 storefront that uses the FakeStore API for product data. The app includes catalog browsing, search, filters, sorting, cart and wishlist persistence, and a light/dark theme toggle.
 
 ## Features
 
 - Home, product listing, product details, cart, wishlist, search results, and not found pages
-- FakeStore API integration with typed Angular services and HTTP retry/error interceptor
-- Standalone Angular architecture with lazy-loaded route components
-- Signal-backed cart, wishlist, theme, and page state
-- LocalStorage persistence for cart, wishlist, and dark/light theme
-- Debounced search, category filtering, sorting, and load-more pagination
-- Desktop filter sidebar and mobile filter drawer
-- Reusable navbar, footer, product card, search bar, loader, empty state, modal, and toast components
-- Skeleton loading, toast notifications, lazy images, image fallback, badges, hover states, and responsive layouts
-- Accessibility-minded labels, semantic sections, keyboard-friendly buttons, and ARIA states
+- Product catalog loaded from FakeStore API
+- Standalone components and lazy-loaded routes
+- Cart, wishlist, theme, and page state handled with Angular Signals
+- Cart, wishlist, and theme saved in `localStorage`
+- Debounced search, category filters, sorting, and load-more pagination
+- Desktop sidebar filters and a mobile filter drawer
+- Shared UI components for product cards, loaders, empty states, modals, search, and toasts
+- Lazy images, image fallback, responsive layout, and keyboard-friendly controls
 
 ## Technologies Used
 
@@ -72,7 +71,7 @@ src/app/
 
 ## Screenshots
 
-Add screenshots after running locally:
+Suggested screenshots to add before sharing the repo:
 
 - `docs/screenshots/home.png`
 - `docs/screenshots/products-desktop.png`
@@ -125,8 +124,7 @@ https://fakestoreapi.com/products
 
 ## Important Implementation Notes
 
-- `ProductApiService` centralizes FakeStore API access and caches product reads with `shareReplay`.
-- `CartService`, `WishlistService`, and `ThemeService` use Angular Signals for local UI state.
-- `apiErrorInterceptor` retries failed HTTP calls and normalizes user-facing API errors.
-- Feature pages are lazy loaded through `app.routes.ts` to keep route bundles focused.
-- Shared components keep UI reusable and easier to extend in interview or portfolio discussions.
+- `ProductApiService` keeps API calls in one place and caches the product list with `shareReplay`.
+- `CartService`, `WishlistService`, and `ThemeService` hold client-side state with Angular Signals.
+- `apiErrorInterceptor` retries failed HTTP calls and returns a consistent error message.
+- Feature pages are lazy loaded from `app.routes.ts`.
