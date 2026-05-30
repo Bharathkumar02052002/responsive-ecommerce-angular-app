@@ -1,5 +1,5 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { CartService } from '../../core/services/cart.service';
@@ -61,6 +61,23 @@ import { ImageFallbackDirective } from '../../shared/directives/image-fallback.d
                 <span>Subtotal</span>
                 <strong>{{ cart.subtotal() | currency }}</strong>
               </div>
+              <div class="d-flex justify-content-between border-bottom py-3">
+                <span>Shipping</span>
+                <strong>{{ shipping() === 0 ? 'Free' : (shipping() | currency) }}</strong>
+              </div>
+              <div class="py-3">
+                <div class="d-flex justify-content-between small mb-2">
+                  <span>Free shipping</span>
+                  <span>{{ freeShippingMessage() }}</span>
+                </div>
+                <div class="progress" aria-label="Free shipping progress">
+                  <div class="progress-bar bg-success" [style.width.%]="freeShippingProgress()"></div>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between py-3 fs-5">
+                <span>Total</span>
+                <strong>{{ total() | currency }}</strong>
+              </div>
               <button class="btn btn-brand w-100 mt-4" type="button">Proceed to checkout</button>
               <button class="btn btn-link text-danger w-100 mt-2" type="button" (click)="cart.clear()">Clear cart</button>
             </div>
@@ -78,5 +95,16 @@ import { ImageFallbackDirective } from '../../shared/directives/image-fallback.d
   ]
 })
 export class CartComponent {
+  readonly freeShippingThreshold = 100;
+  readonly shipping = computed(() => (this.cart.subtotal() >= this.freeShippingThreshold ? 0 : 9.99));
+  readonly total = computed(() => this.cart.subtotal() + this.shipping());
+  readonly freeShippingProgress = computed(() =>
+    Math.min(100, Math.round((this.cart.subtotal() / this.freeShippingThreshold) * 100))
+  );
+  readonly freeShippingMessage = computed(() => {
+    const remaining = this.freeShippingThreshold - this.cart.subtotal();
+    return remaining <= 0 ? 'Unlocked' : `${remaining.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} away`;
+  });
+
   constructor(readonly cart: CartService) {}
 }

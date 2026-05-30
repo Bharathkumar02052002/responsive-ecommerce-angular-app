@@ -17,13 +17,20 @@ export function sortProducts(products: Product[], sort: ProductSort): Product[] 
   }
 }
 
-export function filterProducts(products: Product[], query: string, category: string): Product[] {
+export function filterProducts(
+  products: Product[],
+  query: string,
+  category: string,
+  priceRange?: { min: number; max: number }
+): Product[] {
   const normalizedQuery = query.trim().toLowerCase();
 
   return products.filter((product) => {
     const matchesQuery = !normalizedQuery || product.title.toLowerCase().includes(normalizedQuery);
     const matchesCategory = !category || product.category === category;
-    return matchesQuery && matchesCategory;
+    const matchesPrice =
+      !priceRange || (product.price >= priceRange.min && product.price <= priceRange.max);
+    return matchesQuery && matchesCategory && matchesPrice;
   });
 }
 

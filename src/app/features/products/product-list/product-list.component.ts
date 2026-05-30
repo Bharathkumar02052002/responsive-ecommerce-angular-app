@@ -70,7 +70,12 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
             <app-filter-sidebar
               [categories]="categories()"
               [selectedCategory]="selectedCategory()"
+              [minPrice]="minPrice()"
+              [maxPrice]="maxPrice()"
+              [selectedMaxPrice]="selectedMaxPrice()"
               (categoryChange)="setCategory($event)"
+              (priceChange)="setMaxPrice($event)"
+              (reset)="resetFilters()"
             />
           </div>
 
@@ -83,7 +88,7 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
             <app-empty-state
               *ngIf="!filteredProducts().length"
               title="No matching products"
-              message="Try a different search term or category."
+              message="Try a different search term, category, or price range."
               icon="bi-search"
               actionLabel=""
             />
@@ -113,7 +118,12 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
       <app-filter-sidebar
         [categories]="categories()"
         [selectedCategory]="selectedCategory()"
+        [minPrice]="minPrice()"
+        [maxPrice]="maxPrice()"
+        [selectedMaxPrice]="selectedMaxPrice()"
         (categoryChange)="setCategory($event); mobileFiltersOpen.set(false)"
+        (priceChange)="setMaxPrice($event)"
+        (reset)="resetFilters()"
       />
     </app-modal>
   `
@@ -125,12 +135,21 @@ export class ProductListComponent implements OnInit {
   readonly error = signal('');
   readonly query = signal('');
   readonly selectedCategory = signal('');
+  readonly selectedMaxPrice = signal(1000);
   readonly page = signal(1);
   readonly mobileFiltersOpen = signal(false);
   readonly sort = signal<ProductSort>('featured');
 
+  readonly minPrice = computed(() => Math.floor(Math.min(...this.products().map((product) => product.price), 0)));
+  readonly maxPrice = computed(() => Math.ceil(Math.max(...this.products().map((product) => product.price), 1000)));
   readonly filteredProducts = computed(() =>
-    sortProducts(filterProducts(this.products(), this.query(), this.selectedCategory()), this.sort())
+    sortProducts(
+      filterProducts(this.products(), this.query(), this.selectedCategory(), {
+        min: this.minPrice(),
+        max: this.selectedMaxPrice()
+      }),
+      this.sort()
+    )
   );
   readonly visibleProducts = computed(() => paginate(this.filteredProducts(), this.page(), 9));
   readonly subtotalPreview = computed(() =>
@@ -154,6 +173,7 @@ export class ProductListComponent implements OnInit {
         next: ({ products, categories }) => {
           this.products.set(products);
           this.categories.set(categories);
+          this.selectedMaxPrice.set(Math.ceil(Math.max(...products.map((product) => product.price))));
           this.loading.set(false);
         },
         error: (error: Error) => {
@@ -173,8 +193,20 @@ export class ProductListComponent implements OnInit {
     this.page.set(1);
   }
 
+  setMaxPrice(price: number): void {
+    this.selectedMaxPrice.set(Number(price));
+    this.page.set(1);
+  }
+
   setSort(sort: ProductSort): void {
     this.sort.set(sort);
+    this.page.set(1);
+  }
+
+  resetFilters(): void {
+    this.query.set('');
+    this.selectedCategory.set('');
+    this.selectedMaxPrice.set(this.maxPrice());
     this.page.set(1);
   }
 
