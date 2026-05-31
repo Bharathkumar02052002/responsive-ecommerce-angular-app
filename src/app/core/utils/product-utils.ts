@@ -21,7 +21,8 @@ export function filterProducts(
   products: Product[],
   query: string,
   category: string,
-  priceRange?: { min: number; max: number }
+  priceRange?: { min: number; max: number },
+  minRating = 0
 ): Product[] {
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -30,7 +31,8 @@ export function filterProducts(
     const matchesCategory = !category || product.category === category;
     const matchesPrice =
       !priceRange || (product.price >= priceRange.min && product.price <= priceRange.max);
-    return matchesQuery && matchesCategory && matchesPrice;
+    const matchesRating = product.rating.rate >= minRating;
+    return matchesQuery && matchesCategory && matchesPrice && matchesRating;
   });
 }
 

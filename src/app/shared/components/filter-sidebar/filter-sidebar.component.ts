@@ -58,17 +58,47 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
           <span>{{ maxPrice | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
         </div>
       </div>
+
+      <div class="border-top mt-4 pt-4">
+        <h3 class="h6 mb-3">Minimum rating</h3>
+        <div class="rating-options" role="group" aria-label="Minimum rating">
+          <button
+            class="btn btn-sm"
+            type="button"
+            *ngFor="let rating of ratingOptions"
+            [class.btn-brand]="selectedMinRating === rating"
+            [class.btn-outline-secondary]="selectedMinRating !== rating"
+            (click)="ratingChange.emit(rating)"
+          >
+            {{ rating === 0 ? 'Any' : rating + '+' }}
+            <i *ngIf="rating > 0" class="bi bi-star-fill text-warning ms-1" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
     </aside>
-  `
+  `,
+  styles: [
+    `
+      .rating-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+    `
+  ]
 })
 export class FilterSidebarComponent {
+  readonly ratingOptions = [0, 3, 4, 4.5];
+
   @Input() categories: string[] = [];
   @Input() selectedCategory = '';
   @Input() minPrice = 0;
   @Input() maxPrice = 1000;
   @Input() selectedMaxPrice = 1000;
+  @Input() selectedMinRating = 0;
   @Output() categoryChange = new EventEmitter<string>();
   @Output() priceChange = new EventEmitter<number>();
+  @Output() ratingChange = new EventEmitter<number>();
   @Output() reset = new EventEmitter<void>();
 
   resetFilters(): void {

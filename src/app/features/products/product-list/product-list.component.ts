@@ -15,6 +15,7 @@ import { LoaderComponent } from '../../../shared/components/loader/loader.compon
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { ProductCardComponent } from '../../../shared/components/product-card/product-card.component';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
+import { ProductCategoryPipe } from '../../../shared/pipes/product-category.pipe';
 
 @Component({
   selector: 'app-product-list',
@@ -27,6 +28,7 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
     FormsModule,
     LoaderComponent,
     ModalComponent,
+    ProductCategoryPipe,
     ProductCardComponent,
     SearchBarComponent
   ],
@@ -73,13 +75,52 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
               [minPrice]="minPrice()"
               [maxPrice]="maxPrice()"
               [selectedMaxPrice]="selectedMaxPrice()"
+              [selectedMinRating]="selectedMinRating()"
               (categoryChange)="setCategory($event)"
               (priceChange)="setMaxPrice($event)"
+              (ratingChange)="setMinRating($event)"
               (reset)="resetFilters()"
             />
           </div>
 
           <div class="col-lg-9">
+            <div class="active-filters d-flex flex-wrap gap-2 mb-3" *ngIf="hasActiveFilters()">
+              <button *ngIf="query()" class="btn btn-sm btn-outline-secondary" type="button" (click)="setQuery('')">
+                Search: {{ query() }}
+                <i class="bi bi-x-lg ms-1" aria-hidden="true"></i>
+              </button>
+              <button
+                *ngIf="selectedCategory()"
+                class="btn btn-sm btn-outline-secondary"
+                type="button"
+                (click)="setCategory('')"
+              >
+                {{ selectedCategory() | productCategory }}
+                <i class="bi bi-x-lg ms-1" aria-hidden="true"></i>
+              </button>
+              <button
+                *ngIf="selectedMaxPrice() < maxPrice()"
+                class="btn btn-sm btn-outline-secondary"
+                type="button"
+                (click)="setMaxPrice(maxPrice())"
+              >
+                Up to {{ selectedMaxPrice() | currency: 'USD' : 'symbol' : '1.0-0' }}
+                <i class="bi bi-x-lg ms-1" aria-hidden="true"></i>
+              </button>
+              <button
+                *ngIf="selectedMinRating() > 0"
+                class="btn btn-sm btn-outline-secondary"
+                type="button"
+                (click)="setMinRating(0)"
+              >
+                {{ selectedMinRating() }}+ rating
+                <i class="bi bi-x-lg ms-1" aria-hidden="true"></i>
+              </button>
+              <button class="btn btn-sm btn-link text-decoration-none" type="button" (click)="resetFilters()">
+                Clear all
+              </button>
+            </div>
+
             <div class="d-flex justify-content-between align-items-center mb-3">
               <p class="mb-0 text-muted-app">{{ filteredProducts().length }} products found</p>
               <p class="mb-0 fw-semibold">{{ subtotalPreview() | currency }} visible value</p>
@@ -121,8 +162,10 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
         [minPrice]="minPrice()"
         [maxPrice]="maxPrice()"
         [selectedMaxPrice]="selectedMaxPrice()"
+        [selectedMinRating]="selectedMinRating()"
         (categoryChange)="setCategory($event); mobileFiltersOpen.set(false)"
         (priceChange)="setMaxPrice($event)"
+        (ratingChange)="setMinRating($event)"
         (reset)="resetFilters()"
       />
     </app-modal>
@@ -136,6 +179,7 @@ export class ProductListComponent implements OnInit {
   readonly query = signal('');
   readonly selectedCategory = signal('');
   readonly selectedMaxPrice = signal(1000);
+  readonly selectedMinRating = signal(0);
   readonly page = signal(1);
   readonly mobileFiltersOpen = signal(false);
   readonly sort = signal<ProductSort>('featured');
@@ -147,13 +191,21 @@ export class ProductListComponent implements OnInit {
       filterProducts(this.products(), this.query(), this.selectedCategory(), {
         min: this.minPrice(),
         max: this.selectedMaxPrice()
-      }),
+      },
+      this.selectedMinRating()),
       this.sort()
     )
   );
   readonly visibleProducts = computed(() => paginate(this.filteredProducts(), this.page(), 9));
   readonly subtotalPreview = computed(() =>
     this.visibleProducts().reduce((total, product) => total + product.price, 0)
+  );
+  readonly hasActiveFilters = computed(
+    () =>
+      !!this.query() ||
+      !!this.selectedCategory() ||
+      this.selectedMaxPrice() < this.maxPrice() ||
+      this.selectedMinRating() > 0
   );
 
   constructor(
@@ -198,6 +250,11 @@ export class ProductListComponent implements OnInit {
     this.page.set(1);
   }
 
+  setMinRating(rating: number): void {
+    this.selectedMinRating.set(Number(rating));
+    this.page.set(1);
+  }
+
   setSort(sort: ProductSort): void {
     this.sort.set(sort);
     this.page.set(1);
@@ -207,6 +264,7 @@ export class ProductListComponent implements OnInit {
     this.query.set('');
     this.selectedCategory.set('');
     this.selectedMaxPrice.set(this.maxPrice());
+    this.selectedMinRating.set(0);
     this.page.set(1);
   }
 

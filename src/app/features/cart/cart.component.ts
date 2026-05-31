@@ -1,5 +1,6 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Component, computed } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { CartService } from '../../core/services/cart.service';
@@ -9,7 +10,7 @@ import { ImageFallbackDirective } from '../../shared/directives/image-fallback.d
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, EmptyStateComponent, ImageFallbackDirective, RouterLink],
+  imports: [CommonModule, CurrencyPipe, EmptyStateComponent, FormsModule, ImageFallbackDirective, RouterLink],
   template: `
     <section class="section-pad">
       <div class="container">
@@ -65,6 +66,29 @@ import { ImageFallbackDirective } from '../../shared/directives/image-fallback.d
                 <span>Shipping</span>
                 <strong>{{ shipping() === 0 ? 'Free' : (shipping() | currency) }}</strong>
               </div>
+              <form class="border-bottom py-3" (ngSubmit)="applyPromoCode()">
+                <label class="form-label small fw-semibold" for="promoCode">Promo code</label>
+                <div class="input-group">
+                  <input
+                    id="promoCode"
+                    class="form-control"
+                    name="promoCode"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="Try SAVE10"
+                    [ngModel]="promoCode()"
+                    (ngModelChange)="promoCode.set($event)"
+                  />
+                  <button class="btn btn-outline-secondary" type="submit">Apply</button>
+                </div>
+                <p class="small mb-0 mt-2" [class.text-success]="appliedPromoCode()" [class.text-danger]="promoError()">
+                  {{ promoMessage() }}
+                </p>
+              </form>
+              <div class="d-flex justify-content-between border-bottom py-3" *ngIf="discount() > 0">
+                <span>Discount</span>
+                <strong class="text-success">-{{ discount() | currency }}</strong>
+              </div>
               <div class="py-3">
                 <div class="d-flex justify-content-between small mb-2">
                   <span>Free shipping</span>
@@ -96,15 +120,39 @@ import { ImageFallbackDirective } from '../../shared/directives/image-fallback.d
 })
 export class CartComponent {
   readonly freeShippingThreshold = 100;
+  readonly promoCode = signal('');
+  readonly appliedPromoCode = signal('');
+  readonly promoError = signal('');
   readonly shipping = computed(() => (this.cart.subtotal() >= this.freeShippingThreshold ? 0 : 9.99));
-  readonly total = computed(() => this.cart.subtotal() + this.shipping());
+  readonly discount = computed(() => (this.appliedPromoCode() ? this.cart.subtotal() * 0.1 : 0));
+  readonly total = computed(() => Math.max(0, this.cart.subtotal() - this.discount()) + this.shipping());
   readonly freeShippingProgress = computed(() =>
     Math.min(100, Math.round((this.cart.subtotal() / this.freeShippingThreshold) * 100))
   );
+  readonly promoMessage = computed(() => {
+    if (this.appliedPromoCode()) {
+      return `${this.appliedPromoCode()} applied for 10% off`;
+    }
+
+    return this.promoError() || 'Use SAVE10 for a sample discount';
+  });
   readonly freeShippingMessage = computed(() => {
     const remaining = this.freeShippingThreshold - this.cart.subtotal();
     return remaining <= 0 ? 'Unlocked' : `${remaining.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} away`;
   });
 
   constructor(readonly cart: CartService) {}
+
+  applyPromoCode(): void {
+    const normalizedCode = this.promoCode().trim().toUpperCase();
+
+    if (normalizedCode === 'SAVE10') {
+      this.appliedPromoCode.set(normalizedCode);
+      this.promoError.set('');
+      return;
+    }
+
+    this.appliedPromoCode.set('');
+    this.promoError.set('Promo code is not valid');
+  }
 }
