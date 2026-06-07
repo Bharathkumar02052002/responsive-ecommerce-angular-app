@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { CartService } from '../../core/services/cart.service';
+import { CompareService } from '../../core/services/compare.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { WishlistService } from '../../core/services/wishlist.service';
 import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
@@ -54,6 +55,10 @@ import { SearchBarComponent } from '../../shared/components/search-bar/search-ba
               <i class="bi bi-heart" aria-hidden="true"></i>
               <span class="badge text-bg-danger badge-count" *ngIf="wishlist.count()">{{ wishlist.count() }}</span>
             </a>
+            <a class="btn btn-outline-secondary icon-btn position-relative" routerLink="/compare" aria-label="Compare products">
+              <i class="bi bi-columns-gap" aria-hidden="true"></i>
+              <span class="badge text-bg-info badge-count" *ngIf="compare.count()">{{ compare.count() }}</span>
+            </a>
             <a class="btn btn-brand icon-btn position-relative" routerLink="/cart" aria-label="Cart">
               <i class="bi bi-bag" aria-hidden="true"></i>
               <span class="badge text-bg-warning badge-count" *ngIf="cart.totalItems()">{{ cart.totalItems() }}</span>
@@ -98,6 +103,7 @@ import { SearchBarComponent } from '../../shared/components/search-bar/search-ba
 export class NavbarComponent {
   constructor(
     readonly cart: CartService,
+    readonly compare: CompareService,
     readonly theme: ThemeService,
     readonly wishlist: WishlistService,
     private readonly router: Router

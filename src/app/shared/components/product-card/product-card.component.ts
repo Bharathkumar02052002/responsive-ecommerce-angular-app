@@ -49,6 +49,15 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
             <i class="bi" [class.bi-heart-fill]="wishlisted" [class.bi-heart]="!wishlisted" aria-hidden="true"></i>
             {{ wishlisted ? 'Saved' : 'Wishlist' }}
           </button>
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="toggleCompare.emit(product)"
+            [attr.aria-pressed]="compared"
+          >
+            <i class="bi bi-columns-gap" aria-hidden="true"></i>
+            {{ compared ? 'Comparing' : 'Compare' }}
+          </button>
         </div>
       </div>
     </article>
@@ -89,7 +98,9 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
 })
 export class ProductCardComponent {
   @Input({ required: true }) product!: Product;
+  @Input() compared = false;
   @Input() wishlisted = false;
   @Output() addToCart = new EventEmitter<Product>();
+  @Output() toggleCompare = new EventEmitter<Product>();
   @Output() toggleWishlist = new EventEmitter<Product>();
 }

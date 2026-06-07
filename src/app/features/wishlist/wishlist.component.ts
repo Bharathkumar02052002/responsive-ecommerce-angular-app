@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 
 import { CartService } from '../../core/services/cart.service';
+import { CompareService } from '../../core/services/compare.service';
 import { WishlistService } from '../../core/services/wishlist.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
@@ -19,8 +20,10 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
           <div class="col-12 col-sm-6 col-lg-3" *ngFor="let product of wishlist.items()">
             <app-product-card
               [product]="product"
+              [compared]="compare.has(product.id)"
               [wishlisted]="true"
               (addToCart)="cart.add($event)"
+              (toggleCompare)="compare.toggle($event)"
               (toggleWishlist)="wishlist.toggle($event)"
             />
           </div>
@@ -32,6 +35,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 export class WishlistComponent {
   constructor(
     readonly cart: CartService,
+    readonly compare: CompareService,
     readonly wishlist: WishlistService
   ) {}
 }

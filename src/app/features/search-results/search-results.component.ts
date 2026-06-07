@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 
 import { CartService } from '../../core/services/cart.service';
+import { CompareService } from '../../core/services/compare.service';
 import { ProductApiService } from '../../core/services/product-api.service';
 import { WishlistService } from '../../core/services/wishlist.service';
 import { filterProducts } from '../../core/utils/product-utils';
@@ -38,8 +39,10 @@ import { SearchBarComponent } from '../../shared/components/search-bar/search-ba
           <div class="col-12 col-sm-6 col-lg-3" *ngFor="let product of results()">
             <app-product-card
               [product]="product"
+              [compared]="compare.has(product.id)"
               [wishlisted]="wishlist.isWishlisted(product.id)"
               (addToCart)="cart.add($event)"
+              (toggleCompare)="compare.toggle($event)"
               (toggleWishlist)="wishlist.toggle($event)"
             />
           </div>
@@ -56,6 +59,7 @@ export class SearchResultsComponent implements OnInit {
 
   constructor(
     readonly cart: CartService,
+    readonly compare: CompareService,
     readonly wishlist: WishlistService,
     private readonly destroyRef: DestroyRef,
     private readonly productApi: ProductApiService,

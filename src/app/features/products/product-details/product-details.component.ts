@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { switchMap } from 'rxjs';
 
 import { CartService } from '../../../core/services/cart.service';
+import { CompareService } from '../../../core/services/compare.service';
 import { ProductApiService } from '../../../core/services/product-api.service';
 import { RecentlyViewedService } from '../../../core/services/recently-viewed.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
@@ -58,6 +59,15 @@ import { LoaderComponent } from '../../../shared/components/loader/loader.compon
                   aria-hidden="true"
                 ></i>
                 Wishlist
+              </button>
+              <button
+                class="btn btn-outline-secondary btn-lg"
+                type="button"
+                (click)="compare.toggle(item)"
+                [attr.aria-pressed]="compare.has(item.id)"
+              >
+                <i class="bi bi-columns-gap" aria-hidden="true"></i>
+                {{ compare.has(item.id) ? 'Comparing' : 'Compare' }}
               </button>
             </div>
             <a class="btn btn-link px-0 mt-3" routerLink="/products">Back to products</a>
@@ -116,6 +126,7 @@ export class ProductDetailsComponent implements OnInit {
 
   constructor(
     readonly cart: CartService,
+    readonly compare: CompareService,
     readonly wishlist: WishlistService,
     private readonly destroyRef: DestroyRef,
     private readonly productApi: ProductApiService,

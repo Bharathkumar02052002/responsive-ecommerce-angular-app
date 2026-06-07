@@ -24,6 +24,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/cart/cart.component').then((c) => c.CartComponent)
   },
   {
+    path: 'compare',
+    title: 'Compare | ShopSphere',
+    loadComponent: () => import('./features/compare/compare.component').then((c) => c.CompareComponent)
+  },
+  {
     path: 'wishlist',
     title: 'Wishlist | ShopSphere',
     loadComponent: () => import('./features/wishlist/wishlist.component').then((c) => c.WishlistComponent)
