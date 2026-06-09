@@ -2,6 +2,7 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { getStockStatus, StockStatus } from '../../../core/utils/product-utils';
 import { Product } from '../../../models/product.model';
 import { ImageFallbackDirective } from '../../directives/image-fallback.directive';
 import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
@@ -29,6 +30,13 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
             {{ product.rating.rate }}
           </span>
         </div>
+        <span
+          class="badge stock-badge align-self-start mb-2"
+          [class.text-bg-success]="stockStatus() === 'in-stock'"
+          [class.text-bg-warning]="stockStatus() === 'low-stock'"
+        >
+          {{ stockStatus() === 'low-stock' ? 'Low stock' : 'In stock' }}
+        </span>
         <h3 class="h6 product-title">
           <a class="stretched-title text-decoration-none" [routerLink]="['/products', product.id]">
             {{ product.title }}
@@ -39,6 +47,10 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
           <button class="btn btn-brand" type="button" (click)="addToCart.emit(product)">
             <i class="bi bi-bag-plus me-1" aria-hidden="true"></i>
             Add to cart
+          </button>
+          <button *ngIf="showQuickView" class="btn btn-outline-secondary" type="button" (click)="quickView.emit(product)">
+            <i class="bi bi-eye me-1" aria-hidden="true"></i>
+            Quick view
           </button>
           <button
             class="btn btn-outline-secondary"
@@ -89,6 +101,10 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
         line-height: 1.45;
       }
 
+      .stock-badge {
+        font-weight: 600;
+      }
+
       .stretched-title:focus-visible {
         outline: 3px solid rgba(15, 118, 110, 0.35);
         outline-offset: 3px;
@@ -99,8 +115,14 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
 export class ProductCardComponent {
   @Input({ required: true }) product!: Product;
   @Input() compared = false;
+  @Input() showQuickView = false;
   @Input() wishlisted = false;
   @Output() addToCart = new EventEmitter<Product>();
+  @Output() quickView = new EventEmitter<Product>();
   @Output() toggleCompare = new EventEmitter<Product>();
   @Output() toggleWishlist = new EventEmitter<Product>();
+
+  stockStatus(): StockStatus {
+    return getStockStatus(this.product);
+  }
 }

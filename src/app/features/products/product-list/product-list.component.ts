@@ -2,13 +2,14 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, computed, DestroyRef, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { CartService } from '../../../core/services/cart.service';
 import { CompareService } from '../../../core/services/compare.service';
 import { ProductApiService } from '../../../core/services/product-api.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
-import { filterProducts, paginate, sortProducts } from '../../../core/utils/product-utils';
+import { filterProducts, getStockStatus, paginate, sortProducts, StockStatus } from '../../../core/utils/product-utils';
 import { Product, ProductSort } from '../../../models/product.model';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { FilterSidebarComponent } from '../../../shared/components/filter-sidebar/filter-sidebar.component';
@@ -16,6 +17,7 @@ import { LoaderComponent } from '../../../shared/components/loader/loader.compon
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { ProductCardComponent } from '../../../shared/components/product-card/product-card.component';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
+import { ImageFallbackDirective } from '../../../shared/directives/image-fallback.directive';
 import { ProductCategoryPipe } from '../../../shared/pipes/product-category.pipe';
 
 @Component({
@@ -27,10 +29,12 @@ import { ProductCategoryPipe } from '../../../shared/pipes/product-category.pipe
     EmptyStateComponent,
     FilterSidebarComponent,
     FormsModule,
+    ImageFallbackDirective,
     LoaderComponent,
     ModalComponent,
     ProductCategoryPipe,
     ProductCardComponent,
+    RouterLink,
     SearchBarComponent
   ],
   template: `
@@ -140,8 +144,10 @@ import { ProductCategoryPipe } from '../../../shared/pipes/product-category.pipe
                 <app-product-card
                   [product]="product"
                   [compared]="compare.has(product.id)"
+                  [showQuickView]="true"
                   [wishlisted]="wishlist.isWishlisted(product.id)"
                   (addToCart)="cart.add($event)"
+                  (quickView)="openQuickView($event)"
                   (toggleCompare)="compare.toggle($event)"
                   (toggleWishlist)="wishlist.toggle($event)"
                 />
@@ -172,7 +178,49 @@ import { ProductCategoryPipe } from '../../../shared/pipes/product-category.pipe
         (reset)="resetFilters()"
       />
     </app-modal>
-  `
+
+    <app-modal
+      *ngIf="quickViewProduct() as item"
+      [title]="item.title"
+      [open]="!!quickViewProduct()"
+      (close)="closeQuickView()"
+    >
+      <div class="row g-3 align-items-center">
+        <div class="col-md-5">
+          <img class="quick-view-image product-image w-100" [src]="item.image" [alt]="item.title" appImageFallback />
+        </div>
+        <div class="col-md-7">
+          <span class="badge rounded-pill text-bg-light mb-2">{{ item.category | productCategory }}</span>
+          <p class="h4 fw-bold mb-2">{{ item.price | currency }}</p>
+          <p class="text-muted-app">{{ item.description }}</p>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="badge text-bg-warning">
+              <i class="bi bi-star-fill" aria-hidden="true"></i>
+              {{ item.rating.rate }} rating
+            </span>
+            <span
+              class="badge"
+              [class.text-bg-success]="stockStatus(item) === 'in-stock'"
+              [class.text-bg-warning]="stockStatus(item) === 'low-stock'"
+            >
+              {{ stockStatus(item) === 'low-stock' ? 'Low stock' : 'In stock' }}
+            </span>
+          </div>
+          <div class="d-flex flex-column flex-sm-row gap-2">
+            <button class="btn btn-brand" type="button" (click)="cart.add(item); closeQuickView()">Add to cart</button>
+            <a class="btn btn-outline-secondary" [routerLink]="['/products', item.id]">View details</a>
+          </div>
+        </div>
+      </div>
+    </app-modal>
+  `,
+  styles: [
+    `
+      .quick-view-image {
+        height: 260px;
+      }
+    `
+  ]
 })
 export class ProductListComponent implements OnInit {
   readonly products = signal<Product[]>([]);
@@ -185,6 +233,7 @@ export class ProductListComponent implements OnInit {
   readonly selectedMinRating = signal(0);
   readonly page = signal(1);
   readonly mobileFiltersOpen = signal(false);
+  readonly quickViewProduct = signal<Product | null>(null);
   readonly sort = signal<ProductSort>('featured');
 
   readonly minPrice = computed(() => Math.floor(Math.min(...this.products().map((product) => product.price), 0)));
@@ -274,6 +323,18 @@ export class ProductListComponent implements OnInit {
 
   loadMore(): void {
     this.page.update((page) => page + 1);
+  }
+
+  openQuickView(product: Product): void {
+    this.quickViewProduct.set(product);
+  }
+
+  closeQuickView(): void {
+    this.quickViewProduct.set(null);
+  }
+
+  stockStatus(product: Product): StockStatus {
+    return getStockStatus(product);
   }
 
   trackByProductId(_: number, product: Product): number {

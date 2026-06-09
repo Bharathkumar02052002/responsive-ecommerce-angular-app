@@ -1,5 +1,7 @@
 import { Product, ProductSort } from '../../models/product.model';
 
+export type StockStatus = 'in-stock' | 'low-stock';
+
 export function sortProducts(products: Product[], sort: ProductSort): Product[] {
   const sortedProducts = [...products];
 
@@ -38,4 +40,8 @@ export function filterProducts(
 
 export function paginate<T>(items: T[], page: number, pageSize: number): T[] {
   return items.slice(0, page * pageSize);
+}
+
+export function getStockStatus(product: Product): StockStatus {
+  return product.rating.count < 120 ? 'low-stock' : 'in-stock';
 }
