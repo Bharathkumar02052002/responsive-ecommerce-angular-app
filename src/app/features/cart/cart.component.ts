@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { CartService } from '../../core/services/cart.service';
+import { getDeliveryWindow } from '../../core/utils/delivery-utils';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { ImageFallbackDirective } from '../../shared/directives/image-fallback.directive';
 
@@ -98,6 +99,10 @@ import { ImageFallbackDirective } from '../../shared/directives/image-fallback.d
                   <div class="progress-bar bg-success" [style.width.%]="freeShippingProgress()"></div>
                 </div>
               </div>
+              <div class="d-flex justify-content-between border-top border-bottom py-3">
+                <span>Estimated delivery</span>
+                <strong>{{ deliveryWindow }}</strong>
+              </div>
               <div class="d-flex justify-content-between py-3 fs-5">
                 <span>Total</span>
                 <strong>{{ total() | currency }}</strong>
@@ -119,6 +124,7 @@ import { ImageFallbackDirective } from '../../shared/directives/image-fallback.d
   ]
 })
 export class CartComponent {
+  readonly deliveryWindow = getDeliveryWindow();
   readonly freeShippingThreshold = 100;
   readonly promoCode = signal('');
   readonly appliedPromoCode = signal('');

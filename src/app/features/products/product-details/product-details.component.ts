@@ -8,7 +8,9 @@ import { CartService } from '../../../core/services/cart.service';
 import { CompareService } from '../../../core/services/compare.service';
 import { ProductApiService } from '../../../core/services/product-api.service';
 import { RecentlyViewedService } from '../../../core/services/recently-viewed.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
+import { getDeliveryWindow } from '../../../core/utils/delivery-utils';
 import { Product } from '../../../models/product.model';
 import { ImageFallbackDirective } from '../../../shared/directives/image-fallback.directive';
 import { ProductCategoryPipe } from '../../../shared/pipes/product-category.pipe';
@@ -41,6 +43,15 @@ import { LoaderComponent } from '../../../shared/components/loader/loader.compon
               </span>
             </div>
             <p class="lead text-muted-app">{{ item.description }}</p>
+            <div class="surface rounded-3 p-3 mt-4">
+              <div class="d-flex gap-3">
+                <i class="bi bi-truck fs-4 text-success" aria-hidden="true"></i>
+                <div>
+                  <p class="fw-semibold mb-1">Estimated delivery</p>
+                  <p class="text-muted-app mb-0">{{ deliveryWindow }}</p>
+                </div>
+              </div>
+            </div>
             <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
               <button class="btn btn-brand btn-lg" type="button" (click)="cart.add(item)">
                 <i class="bi bi-bag-plus me-1" aria-hidden="true"></i>
@@ -68,6 +79,10 @@ import { LoaderComponent } from '../../../shared/components/loader/loader.compon
               >
                 <i class="bi bi-columns-gap" aria-hidden="true"></i>
                 {{ compare.has(item.id) ? 'Comparing' : 'Compare' }}
+              </button>
+              <button class="btn btn-outline-secondary btn-lg" type="button" (click)="shareProduct(item)">
+                <i class="bi bi-share" aria-hidden="true"></i>
+                Share
               </button>
             </div>
             <a class="btn btn-link px-0 mt-3" routerLink="/products">Back to products</a>
@@ -117,6 +132,7 @@ import { LoaderComponent } from '../../../shared/components/loader/loader.compon
   ]
 })
 export class ProductDetailsComponent implements OnInit {
+  readonly deliveryWindow = getDeliveryWindow();
   readonly product = signal<Product | null>(null);
   readonly loading = signal(true);
   readonly error = signal('');
@@ -131,7 +147,8 @@ export class ProductDetailsComponent implements OnInit {
     private readonly destroyRef: DestroyRef,
     private readonly productApi: ProductApiService,
     private readonly recentlyViewed: RecentlyViewedService,
-    private readonly route: ActivatedRoute
+    private readonly route: ActivatedRoute,
+    private readonly toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -151,5 +168,25 @@ export class ProductDetailsComponent implements OnInit {
           this.loading.set(false);
         }
       });
+  }
+
+  async shareProduct(product: Product): Promise<void> {
+    const shareUrl = window.location.href;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: product.title,
+          text: `Check out ${product.title}`,
+          url: shareUrl
+        });
+        return;
+      }
+
+      await navigator.clipboard.writeText(shareUrl);
+      this.toast.show('Product link copied');
+    } catch {
+      this.toast.show('Unable to share product right now', 'warning');
+    }
   }
 }
