@@ -1,8 +1,8 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Component, computed, DestroyRef, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, HostListener, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { CartService } from '../../../core/services/cart.service';
@@ -213,11 +213,34 @@ import { ProductCategoryPipe } from '../../../shared/pipes/product-category.pipe
         </div>
       </div>
     </app-modal>
+
+    <button
+      *ngIf="showBackToTop()"
+      class="btn btn-brand back-to-top"
+      type="button"
+      (click)="scrollToTop()"
+      aria-label="Back to top"
+    >
+      <i class="bi bi-arrow-up" aria-hidden="true"></i>
+    </button>
   `,
   styles: [
     `
       .quick-view-image {
         height: 260px;
+      }
+
+      .back-to-top {
+        position: fixed;
+        right: 1rem;
+        bottom: 5.25rem;
+        z-index: 1040;
+        display: inline-grid;
+        width: 44px;
+        height: 44px;
+        place-items: center;
+        border-radius: 50%;
+        box-shadow: var(--app-shadow);
       }
     `
   ]
@@ -234,6 +257,7 @@ export class ProductListComponent implements OnInit {
   readonly page = signal(1);
   readonly mobileFiltersOpen = signal(false);
   readonly quickViewProduct = signal<Product | null>(null);
+  readonly showBackToTop = signal(false);
   readonly sort = signal<ProductSort>('featured');
 
   readonly minPrice = computed(() => Math.floor(Math.min(...this.products().map((product) => product.price), 0)));
@@ -265,10 +289,19 @@ export class ProductListComponent implements OnInit {
     readonly compare: CompareService,
     readonly wishlist: WishlistService,
     private readonly destroyRef: DestroyRef,
-    private readonly productApi: ProductApiService
+    private readonly productApi: ProductApiService,
+    private readonly route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const category = params.get('category');
+
+      if (category) {
+        this.setCategory(category);
+      }
+    });
+
     forkJoin({
       products: this.productApi.getProducts(),
       categories: this.productApi.getCategories()
@@ -335,6 +368,15 @@ export class ProductListComponent implements OnInit {
 
   stockStatus(product: Product): StockStatus {
     return getStockStatus(product);
+  }
+
+  scrollToTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    this.showBackToTop.set(window.scrollY > 500);
   }
 
   trackByProductId(_: number, product: Product): number {

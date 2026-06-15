@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 import { CartService } from '../../core/services/cart.service';
 import { CompareService } from '../../core/services/compare.service';
@@ -10,11 +11,12 @@ import { WishlistService } from '../../core/services/wishlist.service';
 import { Product } from '../../models/product.model';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
+import { ProductCategoryPipe } from '../../shared/pipes/product-category.pipe';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, LoaderComponent, ProductCardComponent, RouterLink],
+  imports: [CommonModule, LoaderComponent, ProductCardComponent, ProductCategoryPipe, RouterLink],
   template: `
     <section class="home-hero">
       <div class="container">
@@ -42,6 +44,32 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-pad pb-0">
+      <div class="container">
+        <div class="d-flex justify-content-between align-items-end gap-3 mb-4">
+          <div>
+            <p class="text-uppercase fw-semibold text-muted-app small mb-2">Departments</p>
+            <h2 class="h1 fw-bold mb-0">Shop by category</h2>
+          </div>
+          <a class="btn btn-outline-secondary" routerLink="/products">All products</a>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12 col-sm-6 col-lg-3" *ngFor="let category of categories()">
+            <a
+              class="category-tile surface rounded-3 p-4 text-decoration-none h-100"
+              routerLink="/products"
+              [queryParams]="{ category: category }"
+            >
+              <i class="bi bi-grid-3x3-gap fs-3 text-success" aria-hidden="true"></i>
+              <span class="h5 d-block mt-3 mb-2">{{ category | productCategory }}</span>
+              <span class="small text-muted-app">Browse curated picks</span>
+            </a>
           </div>
         </div>
       </div>
@@ -94,10 +122,21 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
         min-height: 112px;
         background: rgba(255, 255, 255, 0.14);
       }
+
+      .category-tile {
+        display: block;
+        transition: transform 180ms ease, border-color 180ms ease;
+      }
+
+      .category-tile:hover {
+        border-color: rgba(15, 118, 110, 0.35);
+        transform: translateY(-2px);
+      }
     `
   ]
 })
 export class HomeComponent implements OnInit {
+  readonly categories = signal<string[]>([]);
   readonly featuredProducts = signal<Product[]>([]);
   readonly loading = signal(true);
   readonly stats = [
@@ -116,11 +155,14 @@ export class HomeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.productApi
-      .getProducts()
+    forkJoin({
+      categories: this.productApi.getCategories(),
+      products: this.productApi.getProducts()
+    })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (products) => {
+        next: ({ categories, products }) => {
+          this.categories.set(categories);
           this.featuredProducts.set(products.slice(0, 4));
           this.loading.set(false);
         },
