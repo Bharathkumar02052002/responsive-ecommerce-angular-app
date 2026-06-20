@@ -4,7 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { CartService } from '../../core/services/cart.service';
+import { WishlistService } from '../../core/services/wishlist.service';
 import { getDeliveryWindow } from '../../core/utils/delivery-utils';
+import { Product } from '../../models/product.model';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { ImageFallbackDirective } from '../../shared/directives/image-fallback.directive';
 
@@ -44,7 +46,10 @@ import { ImageFallbackDirective } from '../../shared/directives/image-fallback.d
                 </div>
                 <div class="col-5 col-md-2 text-end">
                   <p class="fw-bold mb-2">{{ item.product.price * item.quantity | currency }}</p>
-                  <button class="btn btn-sm btn-outline-danger" type="button" (click)="cart.remove(item.product.id)">
+                  <button class="btn btn-sm btn-outline-secondary mb-2" type="button" (click)="saveForLater(item.product)">
+                    Save for later
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger d-block ms-auto" type="button" (click)="cart.remove(item.product.id)">
                     Remove
                   </button>
                 </div>
@@ -147,7 +152,10 @@ export class CartComponent {
     return remaining <= 0 ? 'Unlocked' : `${remaining.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} away`;
   });
 
-  constructor(readonly cart: CartService) {}
+  constructor(
+    readonly cart: CartService,
+    private readonly wishlist: WishlistService
+  ) {}
 
   applyPromoCode(): void {
     const normalizedCode = this.promoCode().trim().toUpperCase();
@@ -160,5 +168,10 @@ export class CartComponent {
 
     this.appliedPromoCode.set('');
     this.promoError.set('Promo code is not valid');
+  }
+
+  saveForLater(product: Product): void {
+    this.wishlist.add(product);
+    this.cart.remove(product.id);
   }
 }

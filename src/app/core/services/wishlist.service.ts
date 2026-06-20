@@ -21,6 +21,16 @@ export class WishlistService {
     return this.items().some((product) => product.id === productId);
   }
 
+  add(product: Product): void {
+    if (this.isWishlisted(product.id)) {
+      this.toast.show('Already saved to wishlist', 'info');
+      return;
+    }
+
+    this.items.update((items) => [...items, product]);
+    this.toast.show('Saved to wishlist');
+  }
+
   toggle(product: Product): void {
     if (this.isWishlisted(product.id)) {
       this.items.update((items) => items.filter((item) => item.id !== product.id));
@@ -28,8 +38,7 @@ export class WishlistService {
       return;
     }
 
-    this.items.update((items) => [...items, product]);
-    this.toast.show('Saved to wishlist');
+    this.add(product);
   }
 
   remove(productId: number): void {
