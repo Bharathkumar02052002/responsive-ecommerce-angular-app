@@ -13,7 +13,12 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
   imports: [CommonModule, CurrencyPipe, ImageFallbackDirective, ProductCategoryPipe, RouterLink],
   template: `
     <article class="card product-card hover-lift h-100">
-      <a class="image-link" [routerLink]="['/products', product.id]" [attr.aria-label]="'View ' + product.title">
+      <a
+        class="image-link"
+        [class.image-link-list]="layout === 'list'"
+        [routerLink]="['/products', product.id]"
+        [attr.aria-label]="'View ' + product.title"
+      >
         <img
           class="card-img-top product-image"
           [src]="product.image"
@@ -22,7 +27,7 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
           appImageFallback
         />
       </a>
-      <div class="card-body d-flex flex-column">
+      <div class="card-body d-flex flex-column" [class.card-body-list]="layout === 'list'">
         <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
           <span class="badge rounded-pill text-bg-light">{{ product.category | productCategory }}</span>
           <span class="small text-muted-app">
@@ -83,12 +88,22 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
         overflow: hidden;
       }
 
+      :host-context(.product-card-list) .product-card {
+        display: grid;
+        grid-template-columns: minmax(180px, 240px) 1fr;
+      }
+
       .image-link {
         display: grid;
         height: 220px;
         place-items: center;
         padding: 1rem;
         background: #fff;
+      }
+
+      .image-link-list {
+        height: 100%;
+        min-height: 260px;
       }
 
       .product-image {
@@ -101,6 +116,10 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
         line-height: 1.45;
       }
 
+      .card-body-list .product-title {
+        min-height: auto;
+      }
+
       .stock-badge {
         font-weight: 600;
       }
@@ -109,12 +128,24 @@ import { ProductCategoryPipe } from '../../pipes/product-category.pipe';
         outline: 3px solid rgba(15, 118, 110, 0.35);
         outline-offset: 3px;
       }
+
+      @media (max-width: 767.98px) {
+        :host-context(.product-card-list) .product-card {
+          display: block;
+        }
+
+        .image-link-list {
+          height: 220px;
+          min-height: auto;
+        }
+      }
     `
   ]
 })
 export class ProductCardComponent {
   @Input({ required: true }) product!: Product;
   @Input() compared = false;
+  @Input() layout: 'grid' | 'list' = 'grid';
   @Input() showQuickView = false;
   @Input() wishlisted = false;
   @Output() addToCart = new EventEmitter<Product>();

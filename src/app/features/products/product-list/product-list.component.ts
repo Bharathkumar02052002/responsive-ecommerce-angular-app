@@ -1,5 +1,5 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Component, computed, DestroyRef, HostListener, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, HostListener, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -8,7 +8,9 @@ import { forkJoin } from 'rxjs';
 import { CartService } from '../../../core/services/cart.service';
 import { CompareService } from '../../../core/services/compare.service';
 import { ProductApiService } from '../../../core/services/product-api.service';
+import { StorageService } from '../../../core/services/storage.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
+import { STORAGE_KEYS } from '../../../core/constants/storage-keys';
 import { filterProducts, getStockStatus, paginate, sortProducts, StockStatus } from '../../../core/utils/product-utils';
 import { Product, ProductSort } from '../../../models/product.model';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -19,6 +21,8 @@ import { ProductCardComponent } from '../../../shared/components/product-card/pr
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 import { ImageFallbackDirective } from '../../../shared/directives/image-fallback.directive';
 import { ProductCategoryPipe } from '../../../shared/pipes/product-category.pipe';
+
+type CatalogViewMode = 'grid' | 'list';
 
 @Component({
   selector: 'app-product-list',
@@ -128,7 +132,31 @@ import { ProductCategoryPipe } from '../../../shared/pipes/product-category.pipe
 
             <div class="d-flex justify-content-between align-items-center mb-3">
               <p class="mb-0 text-muted-app">{{ filteredProducts().length }} products found</p>
-              <p class="mb-0 fw-semibold">{{ subtotalPreview() | currency }} visible value</p>
+              <div class="d-flex align-items-center gap-2">
+                <p class="mb-0 fw-semibold d-none d-md-block">{{ subtotalPreview() | currency }} visible value</p>
+                <div class="btn-group" role="group" aria-label="Catalog view">
+                  <button
+                    class="btn btn-sm"
+                    type="button"
+                    [class.btn-brand]="viewMode() === 'grid'"
+                    [class.btn-outline-secondary]="viewMode() !== 'grid'"
+                    (click)="setViewMode('grid')"
+                    aria-label="Grid view"
+                  >
+                    <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    class="btn btn-sm"
+                    type="button"
+                    [class.btn-brand]="viewMode() === 'list'"
+                    [class.btn-outline-secondary]="viewMode() !== 'list'"
+                    (click)="setViewMode('list')"
+                    aria-label="List view"
+                  >
+                    <i class="bi bi-list-ul" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <app-empty-state
@@ -140,10 +168,15 @@ import { ProductCategoryPipe } from '../../../shared/pipes/product-category.pipe
             />
 
             <div class="row g-3" *ngIf="filteredProducts().length">
-              <div class="col-12 col-sm-6 col-xl-4" *ngFor="let product of visibleProducts(); trackBy: trackByProductId">
+              <div
+                [class]="productColumnClass()"
+                *ngFor="let product of visibleProducts(); trackBy: trackByProductId"
+              >
                 <app-product-card
+                  [class.product-card-list]="viewMode() === 'list'"
                   [product]="product"
                   [compared]="compare.has(product.id)"
+                  [layout]="viewMode()"
                   [showQuickView]="true"
                   [wishlisted]="wishlist.isWishlisted(product.id)"
                   (addToCart)="cart.add($event)"
@@ -259,6 +292,7 @@ export class ProductListComponent implements OnInit {
   readonly quickViewProduct = signal<Product | null>(null);
   readonly showBackToTop = signal(false);
   readonly sort = signal<ProductSort>('featured');
+  readonly viewMode = signal<CatalogViewMode>('grid');
 
   readonly minPrice = computed(() => Math.floor(Math.min(...this.products().map((product) => product.price), 0)));
   readonly maxPrice = computed(() => Math.ceil(Math.max(...this.products().map((product) => product.price), 1000)));
@@ -283,6 +317,9 @@ export class ProductListComponent implements OnInit {
       this.selectedMaxPrice() < this.maxPrice() ||
       this.selectedMinRating() > 0
   );
+  readonly productColumnClass = computed(() =>
+    this.viewMode() === 'grid' ? 'col-12 col-sm-6 col-xl-4' : 'col-12'
+  );
 
   constructor(
     readonly cart: CartService,
@@ -290,8 +327,12 @@ export class ProductListComponent implements OnInit {
     readonly wishlist: WishlistService,
     private readonly destroyRef: DestroyRef,
     private readonly productApi: ProductApiService,
-    private readonly route: ActivatedRoute
-  ) {}
+    private readonly route: ActivatedRoute,
+    private readonly storage: StorageService
+  ) {
+    this.viewMode.set(this.storage.getItem<CatalogViewMode>(STORAGE_KEYS.catalogView, 'grid'));
+    effect(() => this.storage.setItem(STORAGE_KEYS.catalogView, this.viewMode()));
+  }
 
   ngOnInit(): void {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
@@ -344,6 +385,10 @@ export class ProductListComponent implements OnInit {
   setSort(sort: ProductSort): void {
     this.sort.set(sort);
     this.page.set(1);
+  }
+
+  setViewMode(viewMode: CatalogViewMode): void {
+    this.viewMode.set(viewMode);
   }
 
   resetFilters(): void {

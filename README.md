@@ -10,6 +10,7 @@ ShopSphere is a responsive Angular 16 storefront that uses the FakeStore API for
 - Cart, wishlist, theme, and page state handled with Angular Signals
 - Cart, wishlist, and theme saved in `localStorage`
 - Debounced search, category filters, sorting, and load-more pagination
+- Persisted grid/list view toggle for the product catalog
 - Home page category shortcuts with route-based catalog filtering
 - Quick view modal from the product catalog
 - Back-to-top control for longer catalog sessions
