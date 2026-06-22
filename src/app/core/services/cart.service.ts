@@ -53,6 +53,12 @@ export class CartService {
     );
   }
 
+  updateNote(productId: number, note: string): void {
+    this.items.update((items) =>
+      items.map((item) => (item.product.id === productId ? { ...item, note: note.trimStart() } : item))
+    );
+  }
+
   clear(): void {
     this.items.set([]);
     this.toast.show('Cart cleared', 'info');

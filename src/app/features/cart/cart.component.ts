@@ -32,6 +32,19 @@ import { ImageFallbackDirective } from '../../shared/directives/image-fallback.d
                     <a class="text-decoration-none" [routerLink]="['/products', item.product.id]">{{ item.product.title }}</a>
                   </h2>
                   <p class="text-muted-app mb-0">{{ item.product.price | currency }}</p>
+                  <label class="form-label small fw-semibold mt-3" [for]="'cart-note-' + item.product.id">
+                    Order note
+                  </label>
+                  <textarea
+                    class="form-control form-control-sm"
+                    rows="2"
+                    maxlength="120"
+                    [id]="'cart-note-' + item.product.id"
+                    [name]="'cart-note-' + item.product.id"
+                    [ngModel]="item.note || ''"
+                    (ngModelChange)="cart.updateNote(item.product.id, $event)"
+                    placeholder="Color preference, gift note, delivery instruction"
+                  ></textarea>
                 </div>
                 <div class="col-7 col-md-3">
                   <div class="btn-group" role="group" [attr.aria-label]="'Quantity for ' + item.product.title">
@@ -63,6 +76,10 @@ import { ImageFallbackDirective } from '../../shared/directives/image-fallback.d
               <div class="d-flex justify-content-between border-bottom py-3">
                 <span>Items</span>
                 <strong>{{ cart.totalItems() }}</strong>
+              </div>
+              <div class="d-flex justify-content-between border-bottom py-3">
+                <span>Item notes</span>
+                <strong>{{ noteCount() }}</strong>
               </div>
               <div class="d-flex justify-content-between border-bottom py-3">
                 <span>Subtotal</span>
@@ -136,6 +153,7 @@ export class CartComponent {
   readonly promoError = signal('');
   readonly shipping = computed(() => (this.cart.subtotal() >= this.freeShippingThreshold ? 0 : 9.99));
   readonly discount = computed(() => (this.appliedPromoCode() ? this.cart.subtotal() * 0.1 : 0));
+  readonly noteCount = computed(() => this.cart.items().filter((item) => item.note?.trim()).length);
   readonly total = computed(() => Math.max(0, this.cart.subtotal() - this.discount()) + this.shipping());
   readonly freeShippingProgress = computed(() =>
     Math.min(100, Math.round((this.cart.subtotal() / this.freeShippingThreshold) * 100))

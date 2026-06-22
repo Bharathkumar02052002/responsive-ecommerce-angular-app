@@ -22,6 +22,7 @@ ShopSphere is a responsive Angular 16 storefront that uses the FakeStore API for
 - Product sharing from the details page
 - Estimated delivery window on product details and cart
 - Cart order summary with shipping and free-shipping progress
+- Per-item cart notes persisted with the cart
 - Save-for-later workflow from cart to wishlist
 - Sample promo code flow with `SAVE10`
 - Desktop sidebar filters and a mobile filter drawer
